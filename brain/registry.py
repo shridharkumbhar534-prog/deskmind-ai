@@ -1,5 +1,3 @@
-from brain import capability, intent
-
 
 class CapabilityNotFoundError(Exception):
     """Raised when a capability is not registered."""
