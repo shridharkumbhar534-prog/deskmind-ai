@@ -1,26 +1,40 @@
+import logging
+
 from PySide6.QtCore import QThread, Signal
-from services.gemini_service import ask_gemini
+from brain.brain import Brain
+from brain.errors import DeskMindError
+
+
+logger = logging.getLogger(__name__)
 
 
 class GeminiWorker(QThread):
+
     finished = Signal(str)
     error = Signal(str)
 
     def __init__(self, prompt):
         super().__init__()
         self.prompt = prompt
+        self.brain = Brain()
 
     def run(self):
         print("Worker started")
 
         try:
-            print("Calling Gemini...")
-            response = ask_gemini(self.prompt)
+            print("Processing request through Brain...")
 
-            print("Gemini replied:", response)
+            response = self.brain.process(self.prompt)
 
-            self.finished.emit(response)
+            print("Brain replied:", response)
 
-        except Exception as e:
-            print("Worker Error:", e)
-            self.error.emit(str(e))
+            self.finished.emit(str(response))
+
+        except DeskMindError as error:
+            logger.warning("DeskMind request failed: %s", error)
+            self.error.emit(error.user_message)
+        except Exception:
+            logger.exception("Unexpected error while processing DeskMind request")
+            self.error.emit(
+                "Something went wrong while processing your request. Please try again."
+            )

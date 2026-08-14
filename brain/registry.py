@@ -1,7 +1,5 @@
 
-class CapabilityNotFoundError(Exception):
-    """Raised when a capability is not registered."""
-    pass
+from brain.errors import CapabilityNotFoundError
 
 
 class CapabilityRegistry:
@@ -32,9 +30,7 @@ class CapabilityRegistry:
         """
 
         if intent not in self._factories:
-            raise CapabilityNotFoundError(
-                f"Capability '{intent}' is not registered."
-            )
+            raise CapabilityNotFoundError(intent)
 
         # Already created?
         if intent in self._instances:
