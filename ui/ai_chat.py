@@ -1,5 +1,3 @@
-from email import message
-import os
 from ui.chat_bubble import ChatBubble
 from PySide6.QtCore import QTimer
 from services.gemini_worker import GeminiWorker
@@ -9,8 +7,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QHBoxLayout,
-    QScrollArea,
-    QFrame
+    QScrollArea
 )
 
 
@@ -25,7 +22,6 @@ class AIChatPage(QWidget):
         
         # Scroll Area
         self.scroll_area = QScrollArea()
-        print(self.scroll_area.verticalScrollBar())
         self.scroll_area.setWidgetResizable(True)
 
 # Container that will hold all chat bubbles
@@ -128,17 +124,13 @@ class AIChatPage(QWidget):
 
         
     def show_error(self, error):
-
+        self.thinking_bubble.set_message(f"Error: {error}")
         self.is_thinking = False
         self.send_button.setEnabled(True)
 
-        self.add_message(f"❌ Error: {error}", "ai")
     def scroll_to_bottom(self):
         self.chat_container.adjustSize()
 
         scrollbar = self.scroll_area.verticalScrollBar()
-
-        print("Maximum:", scrollbar.maximum())
-        print("Current:", scrollbar.value())
 
         scrollbar.setValue(scrollbar.maximum())
