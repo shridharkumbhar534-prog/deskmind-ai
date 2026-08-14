@@ -52,3 +52,20 @@ class AIServiceError(DeskMindError):
             "Gemini service request failed.",
             "AI chat is temporarily unavailable. Please try again later.",
         )
+
+
+class InvalidNoteCommandError(DeskMindError):
+    def __init__(self):
+        super().__init__(
+            "The note command did not match a supported format.",
+            "Try: create note: text, list notes, read note 1, "
+            "update note 1: text, or delete note 1.",
+        )
+
+
+class NoteNotFoundError(DeskMindError):
+    def __init__(self, note_id: int):
+        super().__init__(
+            f"Note '{note_id}' does not exist.",
+            f"Note {note_id} was not found.",
+        )
