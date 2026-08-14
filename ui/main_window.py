@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 
 from ui.dashboard import Dashboard
 from ui.ai_chat import AIChatPage
+from ui.notes import NotesPage
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -65,9 +66,11 @@ class MainWindow(QMainWindow):
             lambda: self.pages.setCurrentWidget(self.ai_chat)
 )
         self.ai_chat = AIChatPage()
+        self.notes = NotesPage()
 
         self.pages.addWidget(self.dashboard)
         self.pages.addWidget(self.ai_chat)
+        self.pages.addWidget(self.notes)
 
         # Right Side
         right_layout = QVBoxLayout()
@@ -91,6 +94,9 @@ class MainWindow(QMainWindow):
 
         chat_btn.clicked.connect(
         lambda: self.pages.setCurrentWidget(self.ai_chat)
+        )
+        notes_btn.clicked.connect(
+            lambda: self.pages.setCurrentWidget(self.notes)
         )
         self.setStyleSheet("""
             QMainWindow{
