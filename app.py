@@ -1,6 +1,9 @@
 import sys
 from PySide6.QtWidgets import QApplication
+from database.connection import Database
 from ui.main_window import MainWindow
+
+Database().initialize()
 
 app = QApplication(sys.argv)
 
