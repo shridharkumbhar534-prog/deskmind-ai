@@ -69,3 +69,38 @@ class NoteNotFoundError(DeskMindError):
             f"Note '{note_id}' does not exist.",
             f"Note {note_id} was not found.",
         )
+
+class PDFError(DeskMindError):
+    """Base error for PDF processing failures."""
+
+
+class PDFNotFoundError(PDFError):
+    def __init__(self):
+        super().__init__(
+            "The selected PDF does not exist.",
+            "The selected PDF could not be found.",
+        )
+
+
+class InvalidPDFError(PDFError):
+    def __init__(self):
+        super().__init__(
+            "The selected file is not a valid PDF.",
+            "Please select a valid PDF file.",
+        )
+
+
+class PDFTooLargeError(PDFError):
+    def __init__(self):
+        super().__init__(
+            "The PDF exceeds the maximum allowed size or page count.",
+            "This PDF is too large to process.",
+        )
+
+
+class PDFReadError(PDFError):
+    def __init__(self):
+        super().__init__(
+            "The PDF could not be read.",
+            "DeskMind could not read this PDF.",
+        )

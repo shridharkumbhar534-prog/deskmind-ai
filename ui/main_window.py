@@ -59,14 +59,16 @@ class MainWindow(QMainWindow):
         # Pages
         # Pages
         self.pages = QStackedWidget()
+        self.context = {}
 
         self.dashboard = Dashboard()
-        
+
         self.dashboard.ai_chat_requested.connect(
             lambda: self.pages.setCurrentWidget(self.ai_chat)
-)
-        self.ai_chat = AIChatPage()
-        self.notes = NotesPage()
+        )
+
+        self.ai_chat = AIChatPage(self.context)
+        self.notes = NotesPage(context=self.context)
 
         self.pages.addWidget(self.dashboard)
         self.pages.addWidget(self.ai_chat)

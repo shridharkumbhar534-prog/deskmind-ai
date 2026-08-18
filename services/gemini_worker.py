@@ -13,9 +13,10 @@ class GeminiWorker(QThread):
     finished = Signal(str)
     error = Signal(str)
 
-    def __init__(self, prompt):
+    def __init__(self, prompt, context=None):
         super().__init__()
         self.prompt = prompt
+        self.context = context or {}
         self.brain = Brain()
 
     def run(self):
@@ -24,7 +25,10 @@ class GeminiWorker(QThread):
         try:
             print("Processing request through Brain...")
 
-            response = self.brain.process(self.prompt)
+            response = self.brain.process(
+                self.prompt,
+                self.context
+            )
 
             print("Brain replied:", response)
 

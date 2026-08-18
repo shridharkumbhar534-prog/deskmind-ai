@@ -13,8 +13,10 @@ from PySide6.QtWidgets import (
 
 class AIChatPage(QWidget):
 
-    def __init__(self):
+    def __init__(self, context=None):
+        
         super().__init__()
+        self.context = context if context is not None else {}
 
         layout = QVBoxLayout()
 
@@ -108,7 +110,10 @@ class AIChatPage(QWidget):
         self.send_button.setEnabled(False)
 
     # Create worker
-        self.worker = GeminiWorker(message)
+        self.worker = GeminiWorker(
+            message,
+            self.context
+        )
 
     # Connect signals
         self.worker.finished.connect(self.show_response)

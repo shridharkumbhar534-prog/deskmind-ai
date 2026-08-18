@@ -5,18 +5,57 @@ class IntentDetector:
 
     def detect(self, message: str):
 
-        message = message.lower()
+        message = message.strip().lower()
 
-        if re.search(r"\bnotes?\b", message):
+        # -------------------------
+        # Notes commands
+        # -------------------------
+
+        if re.match(
+            r"^(create|save|add)\s+(a\s+)?note\s*:",
+            message
+        ):
             return "notes"
 
-        if "open" in message:
+        if re.match(
+            r"^(list|show)\s+notes?$",
+            message
+        ):
+            return "notes"
+
+        if re.match(
+            r"^(read|show)\s+note\s+\d+$",
+            message
+        ):
+            return "notes"
+
+        if re.match(
+            r"^update\s+note\s+\d+\s*:",
+            message
+        ):
+            return "notes"
+
+        if re.match(
+            r"^delete\s+note\s+\d+$",
+            message
+        ):
+            return "notes"
+
+        # -------------------------
+        # Other capabilities
+        # -------------------------
+
+        if re.search(r"\bopen\b", message):
             return "open_app"
 
-        if "remind" in message:
+        if re.search(r"\bremind\b", message):
             return "create_reminder"
 
-        if "pdf" in message:
+        if re.search(r"\bpdf\b", message):
             return "pdf"
+
+        # -------------------------
+        # Default
+        # -------------------------
 
         return "chat"
