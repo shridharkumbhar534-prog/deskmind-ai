@@ -12,6 +12,7 @@ from ui.dashboard import Dashboard
 from ui.ai_chat import AIChatPage
 from ui.notes import NotesPage
 from ui.pdf_page import PDFPage
+from ui.file_serch import FileSearchPage
 
 
 class MainWindow(QMainWindow):
@@ -92,11 +93,13 @@ class MainWindow(QMainWindow):
         self.ai_chat = AIChatPage(self.context)
         self.notes = NotesPage(context=self.context)
         self.pdf_page = PDFPage()
+        self.file_search_page = FileSearchPage()
 
         self.pages.addWidget(self.dashboard)
         self.pages.addWidget(self.ai_chat)
         self.pages.addWidget(self.notes)
         self.pages.addWidget(self.pdf_page)
+        self.pages.addWidget(self.file_search_page)
 
         # -------------------------
         # Dashboard shortcut
@@ -125,7 +128,9 @@ class MainWindow(QMainWindow):
         notes_btn.clicked.connect(
             lambda: self.pages.setCurrentWidget(self.notes)
         )
-
+        files_btn.clicked.connect(
+            lambda: self.pages.setCurrentWidget(self.file_search_page)
+        )
         # -------------------------
         # Right side
         # -------------------------

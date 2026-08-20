@@ -57,5 +57,6 @@ class IntentDetector:
         # -------------------------
         # Default
         # -------------------------
-
+        if re.search(r"\b(file search|search files|find files)\b", message):
+            return "file_search"
         return "chat"

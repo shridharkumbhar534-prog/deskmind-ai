@@ -8,6 +8,7 @@ from capabilities.pdf import PDFCapability
 from brain.registry import CapabilityRegistry
 from capabilities.chat import ChatCapability
 from capabilities.notes import NotesCapability
+from capabilities.file_search import FileSearchCapability
 
 
 def register_capabilities(registry: CapabilityRegistry) -> None:
@@ -15,3 +16,4 @@ def register_capabilities(registry: CapabilityRegistry) -> None:
     registry.register("chat", ChatCapability)
     registry.register("notes", NotesCapability)
     registry.register("pdf", PDFCapability)
+    registry.register("file_search", FileSearchCapability)

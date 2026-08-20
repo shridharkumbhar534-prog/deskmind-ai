@@ -15,7 +15,12 @@ class Brain:
         self.dispatcher = Dispatcher(self.registry)
 
     def process(self, message: str, context=None):
-        intent = self.intent_detector.detect(message)
+        context = context or {}
+
+        if "search_directory" in context:
+            intent = "file_search"
+        else:
+            intent = self.intent_detector.detect(message)
 
         return self.dispatcher.dispatch(
             intent,
