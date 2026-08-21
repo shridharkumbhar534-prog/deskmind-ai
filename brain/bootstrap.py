@@ -9,6 +9,7 @@ from brain.registry import CapabilityRegistry
 from capabilities.chat import ChatCapability
 from capabilities.notes import NotesCapability
 from capabilities.file_search import FileSearchCapability
+from capabilities.reminder import ReminderCapability
 
 
 def register_capabilities(registry: CapabilityRegistry) -> None:
@@ -17,3 +18,4 @@ def register_capabilities(registry: CapabilityRegistry) -> None:
     registry.register("notes", NotesCapability)
     registry.register("pdf", PDFCapability)
     registry.register("file_search", FileSearchCapability)
+    registry.register("create_reminder", ReminderCapability)

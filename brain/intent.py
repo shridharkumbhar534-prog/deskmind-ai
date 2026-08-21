@@ -48,7 +48,7 @@ class IntentDetector:
         if re.search(r"\bopen\b", message):
             return "open_app"
 
-        if re.search(r"\bremind\b", message):
+        if re.search(r"\b(remind|reminder|reminders)\b", message):
             return "create_reminder"
 
         if re.search(r"\bpdf\b", message):
