@@ -45,7 +45,10 @@ class IntentDetector:
         # Other capabilities
         # -------------------------
 
-        if re.search(r"\bopen\b", message):
+        if re.match(
+            r"^(open|launch|start)\s+.+$",
+            message,
+        ):      
             return "open_app"
 
         if re.search(r"\b(remind|reminder|reminders)\b", message):
