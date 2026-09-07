@@ -11,9 +11,16 @@ from brain.errors import (
 from config.settings import GEMINI_API_KEY
 
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+MODEL = "gemini-2.0-flash"
 
-MODEL = "gemini-3.6-flash"
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=GEMINI_API_KEY)
+    return _client
 
 
 def ask_gemini(prompt):
@@ -21,12 +28,12 @@ def ask_gemini(prompt):
         raise AIConfigurationError()
 
     try:
-        interaction = client.interactions.create(
+        response = _get_client().models.generate_content(
             model=MODEL,
-            input=prompt,
+            contents=prompt,
         )
 
-        return interaction.output_text
+        return response.text
 
     except ClientError as error:
         if error.code == 429:

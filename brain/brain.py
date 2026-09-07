@@ -1,5 +1,6 @@
 from brain.bootstrap import register_capabilities
 from brain.dispatcher import Dispatcher
+from brain.errors import InvalidRequestError
 from brain.intent import IntentDetector
 from brain.registry import CapabilityRegistry
 
@@ -15,6 +16,9 @@ class Brain:
         self.dispatcher = Dispatcher(self.registry)
 
     def process(self, message: str, context=None):
+        if not message or not message.strip():
+            raise InvalidRequestError()
+
         context = context or {}
 
         if "search_directory" in context:

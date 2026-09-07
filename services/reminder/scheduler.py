@@ -9,21 +9,17 @@ from database.repositories import RemindersRepository
 class ReminderScheduler(QObject):
     reminder_due = Signal(str, str)
 
-    def __init__(self, interval_ms=30_000):
+    def __init__(self, database: Database | None = None, interval_ms=30_000):
         super().__init__()
 
-        self.database = Database()
+        self.database = database or Database()
         self.database.initialize()
 
-        self.reminders = RemindersRepository(
-            self.database
-        )
+        self.reminders = RemindersRepository(self.database)
 
         self.timer = QTimer(self)
         self.timer.setInterval(interval_ms)
-        self.timer.timeout.connect(
-            self.check_reminders
-        )
+        self.timer.timeout.connect(self.check_reminders)
 
         # Prevent the same reminder from being
         # notified repeatedly while the app is running.
@@ -37,7 +33,6 @@ class ReminderScheduler(QObject):
         self.timer.stop()
 
     def check_reminders(self):
-
         now = datetime.now()
 
         try:
@@ -47,15 +42,12 @@ class ReminderScheduler(QObject):
             return
 
         for reminder in reminders:
-
             reminder_id = reminder["id"]
 
             if reminder_id in self.notified_ids:
                 continue
 
-            due_at = self.parse_datetime(
-                reminder["due_at"]
-            )
+            due_at = self.parse_datetime(reminder["due_at"])
 
             if due_at is None:
                 print(
@@ -66,10 +58,7 @@ class ReminderScheduler(QObject):
                 continue
 
             if due_at <= now:
-
-                self.notified_ids.add(
-                    reminder_id
-                )
+                self.notified_ids.add(reminder_id)
 
                 self.reminder_due.emit(
                     reminder["title"],
@@ -78,19 +67,14 @@ class ReminderScheduler(QObject):
 
     @staticmethod
     def parse_datetime(value):
-
         formats = (
             "%Y-%m-%d %H:%M",
             "%Y-%m-%d %H:%M:%S",
         )
 
         for date_format in formats:
-
             try:
-                return datetime.strptime(
-                    value,
-                    date_format
-                )
+                return datetime.strptime(value, date_format)
             except ValueError:
                 continue
 

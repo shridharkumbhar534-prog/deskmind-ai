@@ -6,8 +6,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     QLabel,
     QStackedWidget,
+    QMessageBox,
 )
-from PySide6.QtWidgets import QMessageBox
 
 from database.connection import Database
 from database.repositories import RemindersRepository
@@ -17,6 +17,7 @@ from ui.notes import NotesPage
 from ui.pdf_page import PDFPage
 from ui.file_serch import FileSearchPage
 from ui.reminder import ReminderPage
+from ui.settings import SettingsPage
 from services.reminder.scheduler import ReminderScheduler
 
 
@@ -31,7 +32,6 @@ class MainWindow(QMainWindow):
         # -------------------------
 
         self.context = {}
-        # Reminder database access
         self.database = Database()
         self.database.initialize()
         self.reminders = RemindersRepository(self.database)
@@ -62,8 +62,8 @@ class MainWindow(QMainWindow):
         sidebar.addWidget(title)
 
         # -------------------------
-# Sidebar buttons
-# -------------------------
+        # Sidebar buttons
+        # -------------------------
 
         dashboard_btn = QPushButton("🏠 Dashboard")
         chat_btn = QPushButton("🤖 AI Chat")
@@ -73,7 +73,7 @@ class MainWindow(QMainWindow):
         reminder_btn = QPushButton("⏰ Reminders")
         settings_btn = QPushButton("⚙️ Settings")
 
-        buttons = [
+        self.sidebar_buttons = [
             dashboard_btn,
             chat_btn,
             notes_btn,
@@ -83,26 +83,37 @@ class MainWindow(QMainWindow):
             settings_btn,
         ]
 
-        for btn in buttons:
+        for btn in self.sidebar_buttons:
             btn.setMinimumHeight(45)
+            btn.setCheckable(True)
             sidebar.addWidget(btn)
 
         sidebar.addStretch()
         sidebar_widget = QWidget()
         sidebar_widget.setLayout(sidebar)
         sidebar_widget.setFixedWidth(220)
+        sidebar_widget.setObjectName("sidebar")
+        sidebar_widget.setStyleSheet("""
+            #sidebar {
+                background: #181828;
+            }
+        """)
+
         # -------------------------
         # Pages
         # -------------------------
+
         self.pages = QStackedWidget()
 
         self.dashboard = Dashboard()
         self.ai_chat = AIChatPage(self.context)
-        self.notes = NotesPage(context=self.context)
-        self.pdf_page = PDFPage()
-        self.file_search_page = FileSearchPage()
-        self.reminder_page = ReminderPage()
-        self.reminder_scheduler = ReminderScheduler()
+        self.notes = NotesPage(database=self.database, context=self.context)
+        self.pdf_page = PDFPage(context=self.context)
+        self.file_search_page = FileSearchPage(context=self.context)
+        self.reminder_page = ReminderPage(database=self.database)
+        self.settings_page = SettingsPage()
+
+        self.reminder_scheduler = ReminderScheduler(database=self.database)
         self.reminder_scheduler.reminder_due.connect(
             self.show_reminder_notification
         )
@@ -114,13 +125,14 @@ class MainWindow(QMainWindow):
         self.pages.addWidget(self.pdf_page)
         self.pages.addWidget(self.file_search_page)
         self.pages.addWidget(self.reminder_page)
+        self.pages.addWidget(self.settings_page)
 
         # -------------------------
         # Dashboard shortcut
         # -------------------------
 
         self.dashboard.ai_chat_requested.connect(
-            lambda: self.pages.setCurrentWidget(self.ai_chat)
+            lambda: self.navigate_to(self.ai_chat, chat_btn)
         )
 
         # -------------------------
@@ -128,28 +140,27 @@ class MainWindow(QMainWindow):
         # -------------------------
 
         dashboard_btn.clicked.connect(
-            lambda: self.pages.setCurrentWidget(self.dashboard)
+            lambda: self.navigate_to(self.dashboard, dashboard_btn)
         )
-
         chat_btn.clicked.connect(
-            lambda: self.pages.setCurrentWidget(self.ai_chat)
+            lambda: self.navigate_to(self.ai_chat, chat_btn)
         )
-
         notes_btn.clicked.connect(
-            lambda: self.pages.setCurrentWidget(self.notes)
+            lambda: self.navigate_to(self.notes, notes_btn)
         )
-
         pdf_btn.clicked.connect(
-            lambda: self.pages.setCurrentWidget(self.pdf_page)
+            lambda: self.navigate_to(self.pdf_page, pdf_btn)
         )
-
         files_btn.clicked.connect(
-            lambda: self.pages.setCurrentWidget(self.file_search_page)
+            lambda: self.navigate_to(self.file_search_page, files_btn)
+        )
+        reminder_btn.clicked.connect(
+            lambda: self.navigate_to(self.reminder_page, reminder_btn)
+        )
+        settings_btn.clicked.connect(
+            lambda: self.navigate_to(self.settings_page, settings_btn)
         )
 
-        reminder_btn.clicked.connect(
-            lambda: self.pages.setCurrentWidget(self.reminder_page)
-        )
         # -------------------------
         # Right side
         # -------------------------
@@ -200,18 +211,30 @@ class MainWindow(QMainWindow):
             QPushButton:hover {
                 background: #4f46e5;
             }
-        """)
-        
-        
-    def show_reminder_notification(self, title, due_at):
-        from PySide6.QtWidgets import QMessageBox
 
-        QMessageBox.information(
-            self,
-            "⏰ Reminder",
-            f"{title}\n\nDue: {due_at}",
-        )
-        
+            QPushButton:checked {
+                background: #4f46e5;
+                font-weight: bold;
+            }
+        """)
+
+        # Start on dashboard
+        self.navigate_to(self.dashboard, dashboard_btn)
+
+    # -------------------------
+    # Navigation helper
+    # -------------------------
+
+    def navigate_to(self, page, button):
+        self.pages.setCurrentWidget(page)
+        for btn in self.sidebar_buttons:
+            btn.setChecked(False)
+        button.setChecked(True)
+
+    # -------------------------
+    # Reminder notifications
+    # -------------------------
+
     def show_reminder_notification(self, title, due_at):
         message = QMessageBox(self)
 
@@ -235,7 +258,7 @@ class MainWindow(QMainWindow):
 
         if message.clickedButton() == complete_button:
             self.complete_reminder_from_notification(title, due_at)
-            
+
     def complete_reminder_from_notification(self, title, due_at):
         reminders = self.reminders.list_active()
 

@@ -14,22 +14,21 @@ from PySide6.QtWidgets import (
 class AIChatPage(QWidget):
 
     def __init__(self, context=None):
-        
         super().__init__()
         self.context = context if context is not None else {}
 
         layout = QVBoxLayout()
 
         # Chat History
-        
+
         # Scroll Area
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
 
-# Container that will hold all chat bubbles
+        # Container that will hold all chat bubbles
         self.chat_container = QWidget()
 
-# Layout inside the container
+        # Layout inside the container
         self.chat_layout = QVBoxLayout()
         self.chat_layout.setSpacing(10)
         self.chat_layout.addStretch()
@@ -37,7 +36,6 @@ class AIChatPage(QWidget):
         self.chat_container.setLayout(self.chat_layout)
 
         self.scroll_area.setWidget(self.chat_container)
-
 
         # Input Box
         self.message_input = QLineEdit()
@@ -64,16 +62,15 @@ class AIChatPage(QWidget):
         # Connect button AFTER creating it
         self.send_button.clicked.connect(self.send_message)
         self.message_input.returnPressed.connect(self.send_message)
-    def add_message(self, message, sender):
 
+    def add_message(self, message, sender):
         bubble = ChatBubble(message, sender)
-        
+
         row = QHBoxLayout()
 
         if sender == "user":
             row.addStretch()
             row.addWidget(bubble)
-
         else:
             row.addWidget(bubble)
             row.addStretch()
@@ -81,53 +78,45 @@ class AIChatPage(QWidget):
         self.chat_layout.insertLayout(
             self.chat_layout.count() - 1,
             row
-       )
+        )
 
         QTimer.singleShot(50, self.scroll_to_bottom)
 
         return bubble
-    def send_message(self):
 
+    def send_message(self):
         if self.is_thinking:
             return
-        
+
         message = self.message_input.text().strip()
 
         if not message:
             return
+
         self.add_message(message, "user")
 
         self.message_input.clear()
 
-        self.thinking_bubble = self.add_message(
-            "Thinking...",
-            "ai"
-        )
-        
-
+        self.thinking_bubble = self.add_message("Thinking...", "ai")
 
         self.is_thinking = True
         self.send_button.setEnabled(False)
 
-    # Create worker
-        self.worker = GeminiWorker(
-            message,
-            self.context
-        )
+        # Create worker
+        self.worker = GeminiWorker(message, self.context)
 
-    # Connect signals
+        # Connect signals
         self.worker.finished.connect(self.show_response)
         self.worker.error.connect(self.show_error)
 
-    # Start background thread
+        # Start background thread
         self.worker.start()
+
     def show_response(self, response):
         self.thinking_bubble.set_message(response)
         self.is_thinking = False
         self.send_button.setEnabled(True)
-        
 
-        
     def show_error(self, error):
         self.thinking_bubble.set_message(f"Error: {error}")
         self.is_thinking = False

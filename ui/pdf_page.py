@@ -47,9 +47,10 @@ class PDFWorker(QThread):
 
 class PDFPage(QWidget):
 
-    def __init__(self):
+    def __init__(self, context=None):
         super().__init__()
 
+        self.context = context if context is not None else {}
         self.worker = None
         self.pdf_path = None
         self.is_processing = False
@@ -66,15 +67,11 @@ class PDFPage(QWidget):
         layout.addWidget(title)
 
         self.select_button = QPushButton("Select PDF")
-        self.select_button.clicked.connect(
-            self.select_pdf
-        )
+        self.select_button.clicked.connect(self.select_pdf)
 
         layout.addWidget(self.select_button)
 
-        self.file_label = QLabel(
-            "No PDF selected."
-        )
+        self.file_label = QLabel("No PDF selected.")
 
         layout.addWidget(self.file_label)
 
@@ -83,16 +80,12 @@ class PDFPage(QWidget):
             "Ask something about the PDF..."
         )
 
-        self.question_input.returnPressed.connect(
-            self.ask_question
-        )
+        self.question_input.returnPressed.connect(self.ask_question)
 
         layout.addWidget(self.question_input)
 
         self.ask_button = QPushButton("Ask")
-        self.ask_button.clicked.connect(
-            self.ask_question
-        )
+        self.ask_button.clicked.connect(self.ask_question)
 
         layout.addWidget(self.ask_button)
 
@@ -105,7 +98,6 @@ class PDFPage(QWidget):
         layout.addWidget(self.answer_box)
 
     def select_pdf(self):
-
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Select PDF",
@@ -117,32 +109,24 @@ class PDFPage(QWidget):
             return
 
         self.pdf_path = file_path
+        self.context["pdf_path"] = file_path
 
-        self.file_label.setText(
-            f"Selected: {file_path}"
-        )
+        self.file_label.setText(f"Selected: {file_path}")
 
         self.answer_box.clear()
 
     def ask_question(self):
-
         if self.is_processing:
             return
 
         if not self.pdf_path:
-            self.answer_box.setPlainText(
-                "Please select a PDF first."
-            )
+            self.answer_box.setPlainText("Please select a PDF first.")
             return
 
-        question = (
-            self.question_input.text().strip()
-        )
+        question = self.question_input.text().strip()
 
         if not question:
-            self.answer_box.setPlainText(
-                "Please enter a question."
-            )
+            self.answer_box.setPlainText("Please enter a question.")
             return
 
         self.is_processing = True
@@ -155,45 +139,24 @@ class PDFPage(QWidget):
             "Reading PDF and generating answer..."
         )
 
-        self.worker = PDFWorker(
-            question,
-            self.pdf_path
-        )
+        self.worker = PDFWorker(question, self.pdf_path)
 
-        self.worker.finished.connect(
-            self.show_answer
-        )
-
-        self.worker.error.connect(
-            self.show_error
-        )
-
-        self.worker.finished.connect(
-            self.worker.deleteLater
-        )
-
-        self.worker.error.connect(
-            self.worker.deleteLater
-        )
+        self.worker.finished.connect(self.show_answer)
+        self.worker.error.connect(self.show_error)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.error.connect(self.worker.deleteLater)
 
         self.worker.start()
 
     def show_answer(self, answer):
-
         self.answer_box.setPlainText(answer)
-
         self.finish_processing()
 
     def show_error(self, error):
-
-        self.answer_box.setPlainText(
-            f"Error: {error}"
-        )
-
+        self.answer_box.setPlainText(f"Error: {error}")
         self.finish_processing()
 
     def finish_processing(self):
-
         self.is_processing = False
 
         self.select_button.setEnabled(True)
