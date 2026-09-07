@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 
 from database.connection import Database
 from database.repositories import NotesRepository
+from brain.context import ACTIVE_NOTE
 
 
 class NotesPage(QWidget):
@@ -143,7 +144,7 @@ class NotesPage(QWidget):
             return
 
         self.current_note_id = note_id
-        self.context["active_note"] = {
+        self.context[ACTIVE_NOTE] = {
             "id": note["id"],
             "title": note["title"],
             "content": note["content"],
@@ -161,7 +162,7 @@ class NotesPage(QWidget):
         """Clear the editor and prepare for a new note."""
 
         self.current_note_id = None
-        self.context.pop("active_note", None)
+        self.context.pop(ACTIVE_NOTE, None)
 
         # Prevent selection signals from loading
         # the previous note again.
@@ -212,7 +213,7 @@ class NotesPage(QWidget):
         note = self.notes.get(self.current_note_id)
 
         if note:
-            self.context["active_note"] = {
+            self.context[ACTIVE_NOTE] = {
                 "id": note["id"],
                 "title": note["title"],
                 "content": note["content"],

@@ -1,4 +1,5 @@
 from brain.bootstrap import register_capabilities
+from brain.context import SEARCH_DIRECTORY
 from brain.dispatcher import Dispatcher
 from brain.errors import InvalidRequestError
 from brain.intent import IntentDetector
@@ -21,7 +22,7 @@ class Brain:
 
         context = context or {}
 
-        if "search_directory" in context:
+        if SEARCH_DIRECTORY in context:
             intent = "file_search"
         else:
             intent = self.intent_detector.detect(message)

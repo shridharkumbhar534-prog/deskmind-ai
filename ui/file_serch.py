@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from brain.brain import Brain
+from brain.context import SEARCH_DIRECTORY
 from brain.errors import DeskMindError
 
 
@@ -28,7 +29,7 @@ class FileSearchWorker(QThread):
             response = self.brain.process(
                 self.query,
                 {
-                    "search_directory": self.directory
+                    SEARCH_DIRECTORY: self.directory
                 }
             )
 
@@ -106,7 +107,7 @@ class FileSearchPage(QWidget):
             return
 
         self.directory = directory
-        self.context["search_directory"] = directory
+        self.context[SEARCH_DIRECTORY] = directory
 
         self.folder_label.setText(f"Selected: {directory}")
 

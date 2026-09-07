@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from brain.brain import Brain
+from brain.context import ACTIVE_PDF
 from brain.errors import DeskMindError
 
 
@@ -29,7 +30,7 @@ class PDFWorker(QThread):
                 "pdf",
                 self.request,
                 {
-                    "pdf_path": self.pdf_path
+                    ACTIVE_PDF: self.pdf_path
                 }
             )
 
@@ -109,7 +110,7 @@ class PDFPage(QWidget):
             return
 
         self.pdf_path = file_path
-        self.context["pdf_path"] = file_path
+        self.context[ACTIVE_PDF] = file_path
 
         self.file_label.setText(f"Selected: {file_path}")
 

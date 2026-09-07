@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pymupdf
 from brain.capability import Capability
+from brain.context import ACTIVE_PDF
 
 
 class PDFCapability(Capability):
@@ -11,10 +12,10 @@ class PDFCapability(Capability):
     MAX_PAGES = 100
 
     def execute(self, request, context=None):
-        if not context or "pdf_path" not in context:
+        if not context or ACTIVE_PDF not in context:
             raise ValueError("No PDF file was selected.")
 
-        pdf_path = Path(context["pdf_path"])
+        pdf_path = Path(context[ACTIVE_PDF])
 
         self._validate_pdf(pdf_path)
 
