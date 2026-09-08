@@ -1,13 +1,18 @@
+from pathlib import Path
+from unittest.mock import patch
+
+from brain.context import ACTIVE_PDF
 from capabilities.pdf import PDFCapability
 
 
-pdf = PDFCapability()
+pdf_path = Path(__file__).parent / "capabilities" / "DeskMind_AI_Project_Status_and_Semester_Roadmap.pdf"
 
-result = pdf.execute(
-    "Summarize this PDF",
-    {
-        "pdf_path": r"C:\Users\shrid\Downloads\SY_DE_Lab_Manual (1).pdf"
-    }
-)
+with patch("services.gemini_service.ask_gemini", return_value="mocked PDF answer") as ask_gemini:
+    result = PDFCapability().execute(
+        "Summarize this PDF",
+        {ACTIVE_PDF: str(pdf_path)},
+    )
 
-print(result)
+assert result == "mocked PDF answer"
+assert ask_gemini.called
+print("PDF capability checks passed without external AI credentials.")
