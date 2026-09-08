@@ -104,3 +104,23 @@ class PDFReadError(PDFError):
             "The PDF could not be read.",
             "DeskMind could not read this PDF.",
         )
+
+
+class WorkflowError(DeskMindError):
+    """Base error for workflow execution failures."""
+
+    def __init__(self, message: str, user_message: str):
+        super().__init__(message, user_message)
+
+
+class WorkflowStepError(WorkflowError):
+    """A workflow step failed during execution."""
+
+    def __init__(self, workflow_name: str, step_index: int, cause: str):
+        super().__init__(
+            f"Workflow '{workflow_name}' failed at step {step_index}: {cause}",
+            f"Step {step_index + 1} of the workflow could not be completed.",
+        )
+        self.workflow_name = workflow_name
+        self.step_index = step_index
+        self.cause = cause

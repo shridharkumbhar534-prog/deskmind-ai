@@ -4,6 +4,7 @@ from brain.dispatcher import Dispatcher
 from brain.errors import InvalidRequestError
 from brain.intent import IntentDetector
 from brain.registry import CapabilityRegistry
+from brain.workflow import Workflow, WorkflowEngine
 
 
 class Brain:
@@ -15,6 +16,7 @@ class Brain:
         register_capabilities(self.registry)
 
         self.dispatcher = Dispatcher(self.registry)
+        self.workflow_engine = WorkflowEngine(self.dispatcher)
 
     def process(self, message: str, context=None):
         if not message or not message.strip():
@@ -32,3 +34,10 @@ class Brain:
             message,
             context
         )
+
+    def run_workflow(self, workflow: Workflow, context: dict | None = None) -> dict:
+        """Execute a multi-step workflow, passing each step's result
+        into the next step's context.  Does not affect single-intent
+        ``process`` behavior.
+        """
+        return self.workflow_engine.run(workflow, context)
