@@ -3,6 +3,7 @@ from pathlib import Path
 import pymupdf
 from brain.capability import Capability
 from brain.context import ACTIVE_PDF
+from capabilities.file_search import FILE_SEARCH_RESULTS, FileSearchResult
 
 
 class PDFCapability(Capability):
@@ -12,10 +13,10 @@ class PDFCapability(Capability):
     MAX_PAGES = 100
 
     def execute(self, request, context=None):
-        if not context or ACTIVE_PDF not in context:
+        if not context:
             raise ValueError("No PDF file was selected.")
 
-        pdf_path = Path(context[ACTIVE_PDF])
+        pdf_path = self._resolve_pdf_path(context)
 
         self._validate_pdf(pdf_path)
 
@@ -40,6 +41,27 @@ If the answer cannot be found in the document, say so clearly.
         from services.gemini_service import ask_gemini
 
         return ask_gemini(prompt)
+
+    def _resolve_pdf_path(self, context) -> Path:
+        if ACTIVE_PDF in context:
+            return Path(context[ACTIVE_PDF]).resolve()
+
+        search_result = context.get(FILE_SEARCH_RESULTS)
+        if not isinstance(search_result, FileSearchResult):
+            raise ValueError("No PDF file was selected.")
+
+        if not search_result.matches:
+            raise ValueError("File search found no PDF files.")
+
+        if search_result.is_ambiguous:
+            raise ValueError("File search found multiple matching files.")
+
+        resolved_path = search_result.first_resolved_path()
+        if resolved_path is None:
+            raise ValueError("File search found no PDF files.")
+
+        context[ACTIVE_PDF] = resolved_path
+        return Path(resolved_path)
 
     def _validate_pdf(self, pdf_path: Path):
 
