@@ -19,6 +19,7 @@ from brain.errors import WorkflowStepError
 
 # Key under which a step's result is passed to the next step's context.
 STEP_RESULT = "previous_step_result"
+PDF_TO_NOTE_WORKFLOW_NAME = "pdf-to-note"
 
 
 class WorkflowStep:
@@ -54,6 +55,19 @@ class Workflow:
 
     def __repr__(self):
         return f"Workflow({self.name!r}, {len(self.steps)} steps)"
+
+
+def build_pdf_to_note_workflow(
+    summary_request: str = "Summarize this PDF",
+) -> Workflow:
+    """Build the explicit active-PDF-to-SQLite-note workflow."""
+    return Workflow(
+        PDF_TO_NOTE_WORKFLOW_NAME,
+        [
+            WorkflowStep("pdf", summary_request),
+            WorkflowStep("notes", "create note from PDF summary"),
+        ],
+    )
 
 
 class WorkflowEngine:

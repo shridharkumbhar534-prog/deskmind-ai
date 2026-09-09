@@ -4,7 +4,11 @@ from brain.dispatcher import Dispatcher
 from brain.errors import InvalidRequestError
 from brain.intent import IntentDetector
 from brain.registry import CapabilityRegistry
-from brain.workflow import Workflow, WorkflowEngine
+from brain.workflow import (
+    Workflow,
+    WorkflowEngine,
+    build_pdf_to_note_workflow,
+)
 
 
 class Brain:
@@ -41,3 +45,14 @@ class Brain:
         ``process`` behavior.
         """
         return self.workflow_engine.run(workflow, context)
+
+    def save_active_pdf_as_note(
+        self,
+        context: dict | None = None,
+        summary_request: str = "Summarize this PDF",
+    ) -> dict:
+        """Summarize the active PDF and save the generated content as a note."""
+        return self.run_workflow(
+            build_pdf_to_note_workflow(summary_request),
+            context,
+        )

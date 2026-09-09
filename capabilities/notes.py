@@ -4,6 +4,7 @@ from brain.capability import Capability
 from brain.errors import InvalidNoteCommandError, NoteNotFoundError
 from database.connection import Database
 from database.repositories import NotesRepository
+from capabilities.pdf import PDF_RESULT, PDFResult
 
 
 class NotesCapability(Capability):
@@ -20,6 +21,10 @@ class NotesCapability(Capability):
         re.IGNORECASE,
     )
     _DELETE = re.compile(r"^delete\s+note\s+(?P<id>\d+)$", re.IGNORECASE)
+    _CREATE_FROM_PDF = re.compile(
+        r"^(?:create|save|add)\s+(?:a\s+)?note\s+from\s+(?:the\s+)?pdf(?:\s+summary)?$",
+        re.IGNORECASE,
+    )
 
     def __init__(self, database: Database | None = None):
         database = database or Database()
@@ -28,6 +33,13 @@ class NotesCapability(Capability):
 
     def execute(self, request, context=None):
         request = request.strip()
+
+        if self._CREATE_FROM_PDF.match(request):
+            pdf_result = context.get(PDF_RESULT) if context else None
+            if not isinstance(pdf_result, PDFResult):
+                raise InvalidNoteCommandError()
+            note_id = self.notes.create(pdf_result.content)
+            return f"Note {note_id} saved."
 
         if match := self._CREATE.match(request):
             note_id = self.notes.create(match["content"].strip())

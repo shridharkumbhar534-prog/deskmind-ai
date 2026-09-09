@@ -6,6 +6,21 @@ from brain.context import ACTIVE_PDF
 from capabilities.file_search import FILE_SEARCH_RESULTS, FileSearchResult
 
 
+PDF_RESULT = "pdf_result"
+
+
+class PDFResult:
+    """Structured Gemini output produced from an active PDF."""
+
+    def __init__(self, source_path: Path, request: str, content: str):
+        self.source_path = source_path.resolve()
+        self.request = request
+        self.content = content
+
+    def __repr__(self):
+        return f"PDFResult(source_path={str(self.source_path)!r})"
+
+
 class PDFCapability(Capability):
     """Extract and process text from a locally selected PDF."""
 
@@ -23,7 +38,9 @@ class PDFCapability(Capability):
         text = self._extract_text(pdf_path)
 
         if not text.strip():
-            return "The selected PDF does not contain readable text."
+            content = "The selected PDF does not contain readable text."
+            context[PDF_RESULT] = PDFResult(pdf_path, request, content)
+            return content
 
         prompt = f"""
 The user has selected a PDF document.
@@ -40,7 +57,9 @@ If the answer cannot be found in the document, say so clearly.
 
         from services.gemini_service import ask_gemini
 
-        return ask_gemini(prompt)
+        content = ask_gemini(prompt)
+        context[PDF_RESULT] = PDFResult(pdf_path, request, content)
+        return content
 
     def _resolve_pdf_path(self, context) -> Path:
         if ACTIVE_PDF in context:
