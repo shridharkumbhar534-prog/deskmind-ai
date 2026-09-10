@@ -10,7 +10,6 @@ from brain.workflow import (
     build_pdf_to_note_workflow,
 )
 from brain.workflow_router import (
-    FILE_SEARCH_TO_PDF_WORKFLOW_NAME,
     WorkflowRouter,
     has_required_context,
 )
@@ -59,7 +58,7 @@ class Brain:
         """Return a user-safe message when workflow context is missing."""
         if workflow.name == "pdf-to-note":
             return "Please select a PDF first."
-        if workflow.name == FILE_SEARCH_TO_PDF_WORKFLOW_NAME:
+        if workflow.name == "file-search-to-pdf":
             return "Please select a folder to search first."
         return "Please provide the required context for this workflow."
 

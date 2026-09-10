@@ -11,12 +11,13 @@ from brain.brain import Brain
 from brain.context import ACTIVE_PDF, SEARCH_DIRECTORY
 from brain.errors import InvalidRequestError
 from brain.workflow import Workflow
-from brain.workflow_router import (
-    FILE_SEARCH_TO_PDF_WORKFLOW_NAME,
-    WorkflowRouter,
-    build_file_search_to_pdf_workflow,
-    has_required_context,
+from brain.workflow_registry import (
+    FILE_SEARCH_TO_PDF_WORKFLOW_ID,
+    PDF_TO_NOTE_WORKFLOW_ID,
+    WorkflowRegistry,
+    create_default_registry,
 )
+from brain.workflow_router import WorkflowRouter, has_required_context
 
 
 # ==================================================
@@ -55,7 +56,7 @@ def test_recognize_search_and_summarize_pdf():
     router = WorkflowRouter()
     wf = router.route("search for budget and summarize the PDF")
     assert wf is not None
-    assert wf.name == FILE_SEARCH_TO_PDF_WORKFLOW_NAME
+    assert wf.name == "file-search-to-pdf"
     print("Recognize search-and-summarize-pdf passed.")
 
 
@@ -63,7 +64,7 @@ def test_recognize_find_pdf_containing_and_process():
     router = WorkflowRouter()
     wf = router.route("find PDF containing invoice and process it")
     assert wf is not None
-    assert wf.name == FILE_SEARCH_TO_PDF_WORKFLOW_NAME
+    assert wf.name == "file-search-to-pdf"
     print("Recognize find-pdf-containing-and-process passed.")
 
 
@@ -114,16 +115,16 @@ def test_empty_message_returns_none():
 # ==================================================
 
 def test_pdf_to_note_requires_active_pdf():
-    wf = build_file_search_to_pdf_workflow.__wrapped__ if hasattr(build_file_search_to_pdf_workflow, '__wrapped__') else None
-    from brain.workflow import build_pdf_to_note_workflow
-    wf = build_pdf_to_note_workflow()
+    registry = create_default_registry()
+    wf = registry.build(PDF_TO_NOTE_WORKFLOW_ID)
     assert has_required_context(wf, {}) is False
     assert has_required_context(wf, {ACTIVE_PDF: "/tmp/x.pdf"}) is True
     print("PDF-to-note requires active_pdf passed.")
 
 
 def test_file_search_to_pdf_requires_search_directory():
-    wf = build_file_search_to_pdf_workflow("query")
+    registry = create_default_registry()
+    wf = registry.build(FILE_SEARCH_TO_PDF_WORKFLOW_ID, search_query="query")
     assert has_required_context(wf, {}) is False
     assert has_required_context(wf, {SEARCH_DIRECTORY: "/tmp"}) is True
     print("File-search-to-pdf requires search_directory passed.")

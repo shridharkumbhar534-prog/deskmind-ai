@@ -22,32 +22,16 @@ from __future__ import annotations
 import re
 
 from brain.context import ACTIVE_PDF, SEARCH_DIRECTORY
-from brain.workflow import Workflow, build_pdf_to_note_workflow
-
-
-FILE_SEARCH_TO_PDF_WORKFLOW_NAME = "file-search-to-pdf"
-
-
-def build_file_search_to_pdf_workflow(
-    search_query: str,
-    pdf_request: str = "Summarize this PDF",
-) -> Workflow:
-    """Build the File Search -> PDF workflow for a given query."""
-    from brain.workflow import WorkflowStep
-
-    return Workflow(
-        FILE_SEARCH_TO_PDF_WORKFLOW_NAME,
-        [
-            WorkflowStep("file_search", search_query),
-            WorkflowStep("pdf", pdf_request),
-        ],
-    )
+from brain.workflow import Workflow
+from brain.workflow_registry import (
+    FILE_SEARCH_TO_PDF_WORKFLOW_ID,
+    PDF_TO_NOTE_WORKFLOW_ID,
+    WorkflowRegistry,
+    create_default_registry,
+)
 
 
 # Patterns are matched on the lowercased, stripped message.
-# Each entry: (compiled regex, workflow key, extractor).
-# Extractors pull dynamic values (e.g. the search query) from the
-# regex match so the workflow can be built with the right request.
 _PDF_TO_NOTE_PATTERNS = [
     re.compile(
         r"(?:summarize|summarise)\s+(?:the\s+)?pdf\b.*\b"
@@ -89,6 +73,9 @@ class WorkflowRouter:
     detection when ``route`` returns ``None``.
     """
 
+    def __init__(self, registry: WorkflowRegistry | None = None):
+        self.registry = registry or create_default_registry()
+
     def route(self, message: str, context: dict | None = None) -> Workflow | None:
         if not message or not message.strip():
             return None
@@ -97,7 +84,9 @@ class WorkflowRouter:
 
         # PDF -> Gemini -> Notes
         if self._matches_any(lowered, _PDF_TO_NOTE_PATTERNS):
-            return build_pdf_to_note_workflow()
+            if not self.registry.has(PDF_TO_NOTE_WORKFLOW_ID):
+                return None
+            return self.registry.build(PDF_TO_NOTE_WORKFLOW_ID)
 
         # File Search -> PDF -> Gemini
         workflow = self._route_file_search_to_pdf(lowered)
@@ -107,6 +96,8 @@ class WorkflowRouter:
         return None
 
     def _route_file_search_to_pdf(self, lowered: str) -> Workflow | None:
+        if not self.registry.has(FILE_SEARCH_TO_PDF_WORKFLOW_ID):
+            return None
         for pattern in _FILE_SEARCH_TO_PDF_PATTERNS:
             match = pattern.search(lowered)
             if match:
@@ -119,7 +110,10 @@ class WorkflowRouter:
                     flags=re.IGNORECASE,
                 ).strip()
                 if query:
-                    return build_file_search_to_pdf_workflow(query)
+                    return self.registry.build(
+                        FILE_SEARCH_TO_PDF_WORKFLOW_ID,
+                        search_query=query,
+                    )
         return None
 
     @staticmethod
@@ -138,7 +132,7 @@ def has_required_context(workflow: Workflow, context: dict | None) -> bool:
 
     name = workflow.name
 
-    if name == FILE_SEARCH_TO_PDF_WORKFLOW_NAME:
+    if name == "file-search-to-pdf":
         return SEARCH_DIRECTORY in context
 
     if name == "pdf-to-note":
